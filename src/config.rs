@@ -661,7 +661,7 @@ mod tests {
             r#"{"scheme":"abc","name":"A","program":"C:\\a.exe","arguments":[],"parameters":[]}"#,
         )
         .unwrap();
-        assert!(config.protocols[0].arguments.is_empty());
+        assert_eq!(config.protocols[0].arguments, Vec::<Vec<Segment>>::new());
     }
 
     #[test]

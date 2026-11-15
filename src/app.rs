@@ -296,7 +296,7 @@ mod tests {
         for protocol in &config.protocols {
             check_program(protocol, &mut errors, &mut warnings);
         }
-        assert!(errors.is_empty(), "{errors:?}");
+        assert_eq!(errors, Vec::<String>::new());
         assert_eq!(warnings.len(), 2, "{warnings:?}");
         assert!(warnings[0].contains("interpreter"));
         assert!(warnings[1].starts_with("abd:"));

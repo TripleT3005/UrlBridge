@@ -156,7 +156,7 @@ mod tests {
             arguments("BRIDGE-RDP://10.0.0.1/3389/"),
             ["/v:10.0.0.1:3389", "/f"]
         );
-        assert!(arguments("bridge-fixed://").is_empty());
+        assert_eq!(arguments("bridge-fixed://"), Vec::<String>::new());
     }
 
     #[test]
