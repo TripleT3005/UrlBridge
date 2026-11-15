@@ -1,16 +1,6 @@
-use std::fmt;
+use crate::i18n::{self, Translations};
 
 // Constants
-pub const USAGE: &str = "\
-UrlBridge opens configured programs from custom URL protocols.
-
-Usage:
-  UrlBridge.exe <url>           Validate the URL, ask for confirmation and start the program
-  UrlBridge.exe --test <url>    Show what would be started without starting it
-  UrlBridge.exe --validate      Check the configuration
-  UrlBridge.exe --version       Show the version
-  UrlBridge.exe --help          Show this help";
-
 const TEST: &str = "--test";
 const VALIDATE: &str = "--validate";
 const VERSION: &str = "--version";
@@ -34,12 +24,14 @@ pub enum UsageError {
     TooManyArguments,
 }
 
-impl fmt::Display for UsageError {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl UsageError {
+    pub fn message(&self, texts: &Translations) -> String {
         match self {
-            Self::UnknownOption(option) => write!(formatter, "Unknown option: {option}"),
-            Self::MissingUrl => formatter.write_str("A URL is required."),
-            Self::TooManyArguments => formatter.write_str("Too many arguments."),
+            Self::UnknownOption(option) => {
+                texts.format(i18n::CONSOLE_USAGE_UNKNOWN_OPTION, &[("option", option)])
+            }
+            Self::MissingUrl => texts.text(i18n::CONSOLE_USAGE_MISSING_LINK),
+            Self::TooManyArguments => texts.text(i18n::CONSOLE_USAGE_TOO_MANY_ARGUMENTS),
         }
     }
 }

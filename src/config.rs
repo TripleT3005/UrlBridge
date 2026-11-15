@@ -1,3 +1,4 @@
+use crate::i18n;
 use crate::json::{self, Value};
 use crate::value::{self, Kind};
 
@@ -55,6 +56,7 @@ const RESERVED_SCHEMES: &[&str] = &[
 // Configuration
 #[derive(Debug, PartialEq, Eq)]
 pub struct Config {
+    pub language: Option<String>,
     pub protocols: Vec<Protocol>,
 }
 
@@ -103,16 +105,42 @@ impl Config {
 pub fn parse(input: &[u8]) -> Result<Config, Vec<String>> {
     let root = json::parse(input).map_err(|error| vec![format!("Invalid JSON: {error}.")])?;
     let mut errors = Vec::new();
+    let language = parse_language(&root, &mut errors);
     let protocols = parse_root(&root, &mut errors);
     if errors.is_empty() {
-        Ok(Config { protocols })
+        Ok(Config {
+            language,
+            protocols,
+        })
     } else {
         Err(errors)
     }
 }
 
+fn parse_language(root: &Value, errors: &mut Vec<String>) -> Option<String> {
+    let Value::Object(members) = root else {
+        return None;
+    };
+    let (_, value) = members.iter().find(|(key, _)| key == "language")?;
+    match value {
+        Value::String(code) if i18n::is_valid_code(code) => Some(code.clone()),
+        _ => {
+            errors.push(
+                "The configuration.language: must be a language code such as \"de\" or \"en\"."
+                    .to_owned(),
+            );
+            None
+        }
+    }
+}
+
 fn parse_root(root: &Value, errors: &mut Vec<String>) -> Vec<Protocol> {
-    let Some(fields) = Fields::new(root, "The configuration", &["protocols"], errors) else {
+    let Some(fields) = Fields::new(
+        root,
+        "The configuration",
+        &["language", "protocols"],
+        errors,
+    ) else {
         return Vec::new();
     };
     let Some(items) = fields.array("protocols", MAX_PROTOCOLS, errors) else {
@@ -650,9 +678,23 @@ mod tests {
         assert_eq!(
             parse(br#"{"protocols":[]}"#),
             Ok(Config {
+                language: None,
                 protocols: Vec::new()
             })
         );
+    }
+
+    #[test]
+    fn reads_the_optional_language() {
+        let config = parse(br#"{"language":"de","protocols":[]}"#).unwrap();
+        assert_eq!(config.language.as_deref(), Some("de"));
+        for language in [r#""de_DE""#, r#""../de""#, "1", "null"] {
+            let json = format!(r#"{{"language":{language},"protocols":[]}}"#);
+            assert!(
+                error(parse(json.as_bytes())).contains("language code"),
+                "{language}"
+            );
+        }
     }
 
     #[test]

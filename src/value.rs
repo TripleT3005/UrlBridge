@@ -1,3 +1,5 @@
+use crate::i18n;
+
 // Constants
 pub const MAX_VALUE_LENGTH: usize = 256;
 const MAX_HOSTNAME_LENGTH: usize = 253;
@@ -18,7 +20,7 @@ pub enum Kind {
 impl Kind {
     pub fn check(&self, value: &str) -> Result<(), &'static str> {
         if !is_safe(value) {
-            return Err("contains characters that are never allowed");
+            return Err(i18n::REJECTION_VALUE_UNSAFE);
         }
         let valid = match self {
             Self::Hostname => is_hostname(value),
@@ -39,12 +41,12 @@ impl Kind {
 
     fn expectation(&self) -> &'static str {
         match self {
-            Self::Hostname => "is not a valid host name",
-            Self::Ipv4 => "is not a valid IPv4 address",
-            Self::Host => "is not a valid host name or IPv4 address",
-            Self::Integer { .. } => "is not a number in the allowed range",
-            Self::Token { .. } => "is not a valid token or is too long",
-            Self::Choice { .. } => "is not one of the allowed values",
+            Self::Hostname => i18n::REJECTION_VALUE_HOSTNAME,
+            Self::Ipv4 => i18n::REJECTION_VALUE_IPV4,
+            Self::Host => i18n::REJECTION_VALUE_HOST,
+            Self::Integer { .. } => i18n::REJECTION_VALUE_INTEGER,
+            Self::Token { .. } => i18n::REJECTION_VALUE_TOKEN,
+            Self::Choice { .. } => i18n::REJECTION_VALUE_CHOICE,
         }
     }
 }

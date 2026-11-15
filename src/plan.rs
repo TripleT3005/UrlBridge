@@ -1,6 +1,5 @@
-use std::fmt;
-
 use crate::config::{Config, Protocol, Segment};
+use crate::i18n::{self, Translations};
 use crate::url::{self, UrlError};
 
 // Plan
@@ -18,20 +17,21 @@ pub enum Rejection {
     Value { name: String, problem: &'static str },
 }
 
-impl fmt::Display for Rejection {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl Rejection {
+    pub fn message(&self, texts: &Translations) -> String {
         match self {
-            Self::Url(error) => error.fmt(formatter),
+            Self::Url(error) => texts.text(error.key()),
             Self::UnknownScheme(scheme) => {
-                write!(formatter, "The protocol \"{scheme}\" is not configured.")
+                texts.format(i18n::REJECTION_UNKNOWN_PROTOCOL, &[("scheme", scheme)])
             }
-            Self::ValueCount { expected, actual } => write!(
-                formatter,
-                "The URL contains {actual} value(s), but the protocol expects {expected}."
+            Self::ValueCount { expected, actual } => texts.format(
+                i18n::REJECTION_VALUE_COUNT,
+                &[
+                    ("actual", &actual.to_string()),
+                    ("expected", &expected.to_string()),
+                ],
             ),
-            Self::Value { name, problem } => {
-                write!(formatter, "The value for \"{name}\" {problem}.")
-            }
+            Self::Value { name, problem } => texts.format(problem, &[("name", name)]),
         }
     }
 }
@@ -243,6 +243,27 @@ mod tests {
         ] {
             assert!(Plan::new(&config(), url).is_err(), "{url}");
         }
+    }
+
+    #[test]
+    fn describes_rejections() {
+        let texts = Translations::english();
+        assert_eq!(
+            rejection("other://pc0042").message(&texts),
+            "The protocol \"other\" is not configured."
+        );
+        assert_eq!(
+            rejection("bridge-rdp://pc0042").message(&texts),
+            "The link contains 1 value(s), but the protocol expects 2."
+        );
+        assert_eq!(
+            rejection("bridge-rdp://pc_1/3389").message(&texts),
+            "The value for \"host\" is not a valid host name or IPv4 address."
+        );
+        assert_eq!(
+            rejection("bridge-rdp://pc0042/3389?x").message(&texts),
+            "The link contains a query (?)."
+        );
     }
 
     #[test]

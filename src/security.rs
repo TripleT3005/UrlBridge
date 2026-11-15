@@ -76,9 +76,10 @@ pub enum Problem {
 }
 
 impl Problem {
-    pub fn into_message(self) -> String {
+    pub fn english(&self) -> String {
         match self {
-            Self::Missing(message) | Self::Unsafe(message) => message,
+            Self::Missing(path) => not_found(path),
+            Self::Unsafe(message) => message.clone(),
         }
     }
 }
@@ -109,7 +110,7 @@ pub fn check_local_program(path: &str) -> Result<(), Problem> {
     let root: String = path.chars().take(3).collect();
     match unsafe { GetDriveTypeW(to_wide(&root).as_ptr()) } {
         DRIVE_FIXED => {}
-        DRIVE_NO_ROOT_DIR => return Err(Problem::Missing(not_found(path))),
+        DRIVE_NO_ROOT_DIR => return Err(Problem::Missing(path.to_owned())),
         _ => {
             return Err(Problem::Unsafe(format!(
                 "{root} is not a local fixed drive. Use a UNC path (\\\\server\\share\\...) for programs on the network."
@@ -127,7 +128,7 @@ pub fn check_network_program(path: &str) -> Result<(), Problem> {
 fn check_present(path: &str) -> Result<(), Problem> {
     let attributes = unsafe { GetFileAttributesW(to_wide(path).as_ptr()) };
     if attributes == INVALID_FILE_ATTRIBUTES {
-        return Err(Problem::Missing(not_found(path)));
+        return Err(Problem::Missing(path.to_owned()));
     }
     if attributes & FILE_ATTRIBUTE_DIRECTORY != 0 {
         return Err(Problem::Unsafe(format!("{path} is a folder, not a file.")));
@@ -136,7 +137,7 @@ fn check_present(path: &str) -> Result<(), Problem> {
 }
 
 fn check_exists(path: &str) -> Result<(), String> {
-    check_present(path).map_err(Problem::into_message)
+    check_present(path).map_err(|problem| problem.english())
 }
 
 fn not_found(path: &str) -> String {
