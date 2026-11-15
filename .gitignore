@@ -1,0 +1,9 @@
+# Build output
+/target/
+/dist/
+/THIRD-PARTY-LICENSES.txt
+__pycache__/
+
+# OS
+Thumbs.db
+desktop.ini

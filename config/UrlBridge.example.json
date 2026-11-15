@@ -1,0 +1,13 @@
+{
+  "protocols": [
+    {
+      "scheme": "bridge-rdp",
+      "name": "Remote Desktop",
+      "program": "C:\\Windows\\System32\\mstsc.exe",
+      "arguments": ["/v:{host}"],
+      "parameters": [
+        { "name": "host", "type": "host" }
+      ]
+    }
+  ]
+}
