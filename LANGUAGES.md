@@ -22,5 +22,5 @@ Diese Liste wird aus den Köpfen der Dateien in [`lang`](lang) erzeugt. Nach Än
 
 | Code | Language | Name | Reviewed by |
 |---|---|---|---|
-| `de` | German | Deutsch | – |
-| `en` | English | English | – |
+| `de` | German | Deutsch | [@TripleT3005](https://github.com/TripleT3005) |
+| `en` | English | English | [@TripleT3005](https://github.com/TripleT3005) |

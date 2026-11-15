@@ -227,7 +227,7 @@ Welche Protokolle es gibt, welches Programm sie starten und welche Werte erlaubt
 
 > Rückmeldungen und Fehlerberichte sind als [Issues](../../issues) willkommen; Sicherheitsprobleme bitte wie in [SECURITY.md](SECURITY.md) beschrieben melden. Keine Verbindung zu Microsoft und nicht von Microsoft unterstützt. Windows ist eine Marke der Microsoft-Unternehmensgruppe.
 
-<p><img src="assets/screenshot.png" alt="Bestätigungsdialog von UrlBridge mit dem Programm und seinen Argumenten"></p>
+<p><img src="assets/screenshot-de.png" alt="Bestätigungsdialog von UrlBridge mit dem Programm und seinen Argumenten"></p>
 
 ### Funktionen
 - Beliebig viele eigene URL-Protokolle, jedes mit einem Programm und festen Argumenten
