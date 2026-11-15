@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install Rust
+        run: rustup toolchain install stable --profile minimal --component clippy,rustfmt && rustup default stable
+
+      - name: Check formatting
+        run: cargo fmt --check
+
+      - name: Lint
+        run: cargo clippy --all-targets --locked -- -D warnings
+
+      - name: Test
+        run: cargo test --locked
+
+      - name: Build
+        run: cargo build --release --locked
+
+      - name: Check PowerShell scripts
+        shell: powershell
+        run: |
+          $failed = $false
+          foreach ($file in Get-ChildItem install, scripts -Filter *.ps1) {
+            $errors = $null
+            [void][System.Management.Automation.Language.Parser]::ParseFile($file.FullName, [ref]$null, [ref]$errors)
+            foreach ($problem in $errors) {
+              Write-Host "::error file=$($file.Name)::$($problem.Message)"
+              $failed = $true
+            }
+            if ([IO.File]::ReadAllBytes($file.FullName) | Where-Object { $_ -gt 127 }) {
+              Write-Host "::error file=$($file.Name)::The script contains non-ASCII characters"
+              $failed = $true
+            }
+          }
+          if ($failed) { exit 1 }
+
+      - name: Test license script
+        run: python -m unittest discover -s scripts
+
+      - name: Check third-party licenses
+        run: python scripts/third_party_licenses.py --platform x86_64-pc-windows-msvc --rust-std
