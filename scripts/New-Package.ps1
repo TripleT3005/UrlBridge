@@ -34,6 +34,7 @@ Copy-Item -LiteralPath $exe -Destination $package
 Copy-Item -LiteralPath (Join-Path $root 'install\Install.ps1') -Destination $package
 Copy-Item -LiteralPath (Join-Path $root 'install\Uninstall.ps1') -Destination $package
 Copy-Item -LiteralPath (Join-Path $root 'config\UrlBridge.example.json') -Destination $package
+Copy-Item -LiteralPath (Join-Path $root 'lang') -Destination (Join-Path $package 'lang') -Recurse
 Copy-Item -LiteralPath (Join-Path $root 'README.md') -Destination $package
 Copy-Item -LiteralPath (Join-Path $root 'LICENSE') -Destination (Join-Path $package 'LICENSE.txt')
 if (Test-Path -LiteralPath $licenses) {

@@ -1,4 +1,4 @@
-use std::fmt;
+use crate::i18n;
 
 // Constants
 pub const MAX_LENGTH: usize = 2048;
@@ -24,19 +24,19 @@ pub enum UrlError {
     InvalidEncoding,
 }
 
-impl fmt::Display for UrlError {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        formatter.write_str(match self {
-            Self::TooLong => "The URL is longer than 2048 characters.",
-            Self::InvalidCharacter => "The URL contains spaces, control or non-ASCII characters.",
-            Self::MissingScheme => "The URL has no valid scheme.",
-            Self::MissingSlashes => "The URL must have the form scheme://value.",
-            Self::Query => "The URL contains a query (?).",
-            Self::Fragment => "The URL contains a fragment (#).",
-            Self::UserInfo => "The URL contains user information (@).",
-            Self::EmptyValue => "The URL contains an empty value.",
-            Self::InvalidEncoding => "The URL contains invalid percent-encoding.",
-        })
+impl UrlError {
+    pub fn key(&self) -> &'static str {
+        match self {
+            Self::TooLong => i18n::REJECTION_TOO_LONG,
+            Self::InvalidCharacter => i18n::REJECTION_INVALID_CHARACTER,
+            Self::MissingScheme => i18n::REJECTION_MISSING_SCHEME,
+            Self::MissingSlashes => i18n::REJECTION_MISSING_SLASHES,
+            Self::Query => i18n::REJECTION_QUERY,
+            Self::Fragment => i18n::REJECTION_FRAGMENT,
+            Self::UserInfo => i18n::REJECTION_USER_INFO,
+            Self::EmptyValue => i18n::REJECTION_EMPTY_VALUE,
+            Self::InvalidEncoding => i18n::REJECTION_INVALID_ENCODING,
+        }
     }
 }
 

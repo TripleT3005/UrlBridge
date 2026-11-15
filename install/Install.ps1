@@ -12,6 +12,7 @@ $Publisher = 'TripleT3005'
 $ExeName = 'UrlBridge.exe'
 $ConfigName = 'UrlBridge.json'
 $UninstallName = 'Uninstall.ps1'
+$LanguageFolder = 'lang'
 $Marker = 'UrlBridge'
 $SchemePattern = '^[a-z][a-z0-9+.-]{2,63}$'
 $ClassesPath = 'SOFTWARE\Classes'
@@ -39,8 +40,8 @@ function Invoke-Validation([string]$Exe) {
     try {
         $process = Start-Process -FilePath $Exe -ArgumentList '--validate' -Wait -PassThru -NoNewWindow `
             -RedirectStandardOutput $output -RedirectStandardError $errors
-        Get-Content -LiteralPath $output | ForEach-Object { Write-Host $_ }
-        Get-Content -LiteralPath $errors | ForEach-Object { Write-Failure $_ }
+        Get-Content -LiteralPath $output -Encoding UTF8 | ForEach-Object { Write-Host $_ }
+        Get-Content -LiteralPath $errors -Encoding UTF8 | ForEach-Object { Write-Failure $_ }
         $process.ExitCode
     }
     finally {
@@ -98,6 +99,14 @@ try {
     }
     Copy-Item -LiteralPath $sourceExe -Destination $exe -Force
     Copy-Item -LiteralPath $sourceUninstall -Destination (Join-Path $installDir $UninstallName) -Force
+    $sourceLanguages = Join-Path $PSScriptRoot $LanguageFolder
+    if (Test-Path -LiteralPath $sourceLanguages -PathType Container) {
+        $languages = Join-Path $installDir $LanguageFolder
+        if (Test-Path -LiteralPath $languages) {
+            Remove-Item -LiteralPath $languages -Recurse -Force
+        }
+        Copy-Item -LiteralPath $sourceLanguages -Destination $languages -Recurse
+    }
     if ($ConfigPath) {
         if (Test-Path -LiteralPath $config -PathType Leaf) {
             $previousConfig = [IO.File]::ReadAllBytes($config)

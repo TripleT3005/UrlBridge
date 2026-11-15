@@ -6,6 +6,30 @@ Alle wichtigen Änderungen an UrlBridge, gegliedert nach Version im Stil von [Ke
 
 ## [Unreleased]
 
+## [0.2.0] – 2026-11-15
+
+### English
+
+#### Added
+- German as a second language: dialogs, messages and console output follow the Windows display language and fall back to English.
+- Language files in the `lang` folder next to the program, so further languages can be added as plain text files; [LANGUAGES.md](LANGUAGES.md) lists them.
+- The optional setting `language` in the configuration uses one language for all users.
+
+#### Changed
+- `Install.ps1` also installs the `lang` folder.
+- `--validate` shows the language in use and warns about language files that standard users can modify; such files are ignored.
+
+### Deutsch
+
+#### Neu
+- Deutsch als zweite Sprache: Dialoge, Meldungen und Konsolenausgabe folgen der Anzeigesprache von Windows und fallen auf Englisch zurück.
+- Sprachdateien im Ordner `lang` neben dem Programm, damit sich weitere Sprachen als einfache Textdateien ergänzen lassen; [LANGUAGES.md](LANGUAGES.md) listet sie auf.
+- Die optionale Einstellung `language` in der Konfiguration legt eine Sprache für alle Benutzer fest.
+
+#### Geändert
+- `Install.ps1` installiert auch den Ordner `lang`.
+- `--validate` zeigt die verwendete Sprache und warnt vor Sprachdateien, die Standardbenutzer verändern können; solche Dateien werden ignoriert.
+
 ## [0.1.0] – 2026-11-15
 
 ### English

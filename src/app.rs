@@ -7,6 +7,7 @@ use crate::console;
 use crate::dialog;
 use crate::eventlog::{self, Event};
 use crate::exit::Exit;
+use crate::i18n::{self, Translations};
 use crate::json;
 use crate::launch;
 use crate::plan::Plan;
@@ -34,6 +35,7 @@ const INTERPRETERS: &[&str] = &[
 // Loading
 struct Loaded {
     config: Config,
+    texts: Translations,
     warnings: Vec<String>,
 }
 
@@ -61,12 +63,17 @@ fn load_from(executable: &str, config_path: &str) -> Result<Loaded, Vec<String>>
         return Err(errors);
     }
     let config = config::parse(&read(config_path).map_err(|problem| vec![problem])?)?;
-    let mut warnings = Vec::new();
+    let texts = Translations::load(config.language.as_deref());
+    let mut warnings = texts.warnings().to_vec();
     for protocol in &config.protocols {
-        check_program(protocol, &mut errors, &mut warnings);
+        check_program(protocol, &texts, &mut errors, &mut warnings);
     }
     if errors.is_empty() {
-        Ok(Loaded { config, warnings })
+        Ok(Loaded {
+            config,
+            texts,
+            warnings,
+        })
     } else {
         Err(errors)
     }
@@ -82,12 +89,19 @@ fn read(path: &str) -> Result<Vec<u8>, String> {
     fs::read(path).map_err(|error| format!("{path} cannot be read: {error}."))
 }
 
-fn check_program(protocol: &Protocol, errors: &mut Vec<String>, warnings: &mut Vec<String>) {
+fn check_program(
+    protocol: &Protocol,
+    texts: &Translations,
+    errors: &mut Vec<String>,
+    warnings: &mut Vec<String>,
+) {
     let path = &protocol.program.path;
     let scheme = &protocol.scheme;
     match check_program_file(protocol) {
         Ok(()) => {}
-        Err(Problem::Missing(problem)) => warnings.push(format!("{scheme}: {problem}")),
+        Err(problem @ Problem::Missing(_)) => {
+            warnings.push(format!("{scheme}: {}", problem_text(&problem, texts)));
+        }
         Err(Problem::Unsafe(problem)) => errors.push(format!("{scheme}: {problem}")),
     }
     let is_interpreter = Path::new(path)
@@ -113,33 +127,55 @@ fn check_program_file(protocol: &Protocol) -> Result<(), Problem> {
     }
 }
 
+fn problem_text(problem: &Problem, texts: &Translations) -> String {
+    match problem {
+        Problem::Missing(path) => texts.format(i18n::MESSAGE_LAUNCH_NOT_FOUND, &[("path", path)]),
+        Problem::Unsafe(message) => message.clone(),
+    }
+}
+
 // Commands
+pub fn texts() -> Translations {
+    load().map_or_else(|_| Translations::load(None), |loaded| loaded.texts)
+}
+
+pub fn usage(texts: &Translations) {
+    console::print(&texts.text(i18n::CONSOLE_USAGE));
+}
+
 pub fn validate() -> Exit {
     match load() {
         Ok(loaded) => {
-            for warning in &loaded.warnings {
-                console::print(&format!("Warning: {warning}"));
-            }
+            let texts = &loaded.texts;
+            print_warnings(&loaded.warnings, texts);
+            console::print(&texts.format(
+                i18n::CONSOLE_LANGUAGE,
+                &[
+                    ("name", &texts.text(i18n::LANGUAGE_NAME)),
+                    ("code", texts.code()),
+                ],
+            ));
             let schemes: Vec<&str> = loaded
                 .config
                 .protocols
                 .iter()
                 .map(|protocol| protocol.scheme.as_str())
                 .collect();
-            console::print(&format!(
-                "The configuration is valid. Protocols ({}): {}",
-                schemes.len(),
-                if schemes.is_empty() {
-                    "none".to_owned()
-                } else {
-                    schemes.join(", ")
-                }
+            let list = if schemes.is_empty() {
+                texts.text(i18n::CONSOLE_NO_PROTOCOLS)
+            } else {
+                schemes.join(", ")
+            };
+            console::print(&texts.format(
+                i18n::CONSOLE_VALID,
+                &[("count", &schemes.len().to_string()), ("schemes", &list)],
             ));
             Exit::Success
         }
         Err(errors) => {
-            print_errors(&errors);
-            console::print_error("The configuration is invalid. Nothing will be started.");
+            let texts = Translations::load(None);
+            print_errors(&errors, &texts);
+            console::print_error(&texts.text(i18n::CONSOLE_INVALID));
             Exit::InvalidConfiguration
         }
     }
@@ -149,39 +185,47 @@ pub fn test(url: &str) -> Exit {
     let loaded = match load() {
         Ok(loaded) => loaded,
         Err(errors) => {
-            print_errors(&errors);
+            print_errors(&errors, &Translations::load(None));
             return Exit::InvalidConfiguration;
         }
     };
+    let texts = &loaded.texts;
     match Plan::new(&loaded.config, url) {
         Ok(plan) => {
-            console::print(&format!(
-                "Protocol:     {} ({})\nProgram:      {}\nArguments:    {}\nCommand line: {}",
-                plan.protocol.name,
-                plan.protocol.scheme,
-                plan.protocol.program.path,
-                plan.argument_line(),
-                plan.command_line()
+            console::print(&texts.format(
+                i18n::CONSOLE_TEST,
+                &[
+                    ("name", &plan.protocol.name),
+                    ("scheme", &plan.protocol.scheme),
+                    ("program", &plan.protocol.program.path),
+                    ("arguments", &plan.argument_line()),
+                    ("command_line", &plan.command_line()),
+                ],
             ));
             if let Err(problem) = check_program_file(plan.protocol) {
-                console::print(&format!("Warning: {}", problem.into_message()));
+                print_warnings(&[problem_text(&problem, texts)], texts);
             }
-            console::print("Nothing was started.");
+            console::print(&texts.text(i18n::CONSOLE_NOTHING_STARTED));
             Exit::Success
         }
         Err(rejection) => {
-            console::print_error(&format!("Rejected: {rejection}"));
+            console::print_error(&texts.format(
+                i18n::CONSOLE_REJECTED,
+                &[("text", &rejection.message(texts))],
+            ));
             Exit::RejectedUrl
         }
     }
 }
 
 pub fn open(url: &str) -> Exit {
+    let english = Translations::english();
     let shown_url = eventlog::sanitize(url);
     let loaded = match load() {
         Ok(loaded) => loaded,
         Err(errors) => {
-            print_errors(&errors);
+            let texts = Translations::load(None);
+            print_errors(&errors, &texts);
             eventlog::write(
                 Event::InvalidConfiguration,
                 &format!(
@@ -190,23 +234,30 @@ pub fn open(url: &str) -> Exit {
                 ),
             );
             dialog::error(
-                "UrlBridge is not set up correctly",
-                "Nothing was started. Ask your administrator to run \"UrlBridge.exe --validate\".",
+                &texts.text(i18n::MESSAGE_CONFIGURATION_TITLE),
+                &texts.text(i18n::MESSAGE_CONFIGURATION_TEXT),
+                &texts,
             );
             return Exit::InvalidConfiguration;
         }
     };
+    let texts = &loaded.texts;
     let plan = match Plan::new(&loaded.config, url) {
         Ok(plan) => plan,
         Err(rejection) => {
-            console::print_error(&format!("Rejected: {rejection}"));
+            let reason = rejection.message(texts);
+            console::print_error(&texts.format(i18n::CONSOLE_REJECTED, &[("text", &reason)]));
             eventlog::write(
                 Event::Rejected,
-                &format!("The link was rejected.\nURL: {shown_url}\nReason: {rejection}"),
+                &format!(
+                    "The link was rejected.\nURL: {shown_url}\nReason: {}",
+                    rejection.message(&english)
+                ),
             );
             dialog::error(
-                "The link was rejected",
-                &format!("Nothing was started.\n\n{rejection}"),
+                &texts.text(i18n::MESSAGE_REJECTED_TITLE),
+                &format!("{}\n\n{reason}", texts.text(i18n::MESSAGE_REJECTED_TEXT)),
+                texts,
             );
             return Exit::RejectedUrl;
         }
@@ -219,9 +270,14 @@ pub fn open(url: &str) -> Exit {
         plan.argument_line()
     );
     if let Err(problem) = check_program_file(plan.protocol) {
-        return launch_failed(&details, &problem.into_message());
+        return launch_failed(
+            &details,
+            &problem.english(),
+            &problem_text(&problem, texts),
+            texts,
+        );
     }
-    if !dialog::confirm(&plan) {
+    if !dialog::confirm(&plan, texts) {
         eventlog::write(
             Event::Cancelled,
             &format!("The start was cancelled by the user.\n{details}"),
@@ -236,7 +292,16 @@ pub fn open(url: &str) -> Exit {
             );
             Exit::Success
         }
-        Err(code) => launch_failed(&details, &format!("Windows error {code}.")),
+        Err(code) => {
+            let code = [("code", code.to_string())];
+            let values = [(code[0].0, code[0].1.as_str())];
+            launch_failed(
+                &details,
+                &english.format(i18n::MESSAGE_LAUNCH_WINDOWS_ERROR, &values),
+                &texts.format(i18n::MESSAGE_LAUNCH_WINDOWS_ERROR, &values),
+                texts,
+            )
+        }
     }
 }
 
@@ -250,19 +315,25 @@ pub fn malformed_command_line(arguments: &[String]) {
     );
 }
 
-fn launch_failed(details: &str, problem: &str) -> Exit {
-    console::print_error(&format!("The program could not be started. {problem}"));
+fn launch_failed(details: &str, logged: &str, shown: &str, texts: &Translations) -> Exit {
+    console::print_error(&texts.format(i18n::CONSOLE_LAUNCH_FAILED, &[("text", shown)]));
     eventlog::write(
         Event::LaunchFailed,
-        &format!("The program could not be started.\n{details}\nReason: {problem}"),
+        &format!("The program could not be started.\n{details}\nReason: {logged}"),
     );
-    dialog::error("The program could not be started", problem);
+    dialog::error(&texts.text(i18n::MESSAGE_LAUNCH_TITLE), shown, texts);
     Exit::LaunchFailed
 }
 
-fn print_errors(errors: &[String]) {
+fn print_errors(errors: &[String], texts: &Translations) {
     for error in errors {
-        console::print_error(&format!("Error: {error}"));
+        console::print_error(&texts.format(i18n::CONSOLE_ERROR, &[("text", error)]));
+    }
+}
+
+fn print_warnings(warnings: &[String], texts: &Translations) {
+    for warning in warnings {
+        console::print(&texts.format(i18n::CONSOLE_WARNING, &[("text", warning)]));
     }
 }
 
@@ -294,7 +365,12 @@ mod tests {
         let config = config::parse(json).unwrap();
         let (mut errors, mut warnings) = (Vec::new(), Vec::new());
         for protocol in &config.protocols {
-            check_program(protocol, &mut errors, &mut warnings);
+            check_program(
+                protocol,
+                &Translations::english(),
+                &mut errors,
+                &mut warnings,
+            );
         }
         assert_eq!(errors, Vec::<String>::new());
         assert_eq!(warnings.len(), 2, "{warnings:?}");

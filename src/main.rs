@@ -11,7 +11,10 @@ mod eventlog;
 mod exit;
 #[cfg(test)]
 mod fuzz;
+mod i18n;
 mod json;
+#[cfg(test)]
+mod language_list;
 mod launch;
 mod plan;
 mod security;
@@ -39,7 +42,7 @@ fn main() -> ExitCode {
         .map(|argument| argument.into_string().ok())
         .collect();
     let Some(arguments) = arguments else {
-        console::print_error("The command line contains invalid characters.");
+        console::print_error(&app::texts().text(i18n::CONSOLE_USAGE_INVALID_CHARACTERS));
         return Exit::Usage.into();
     };
     let exit = match cli::parse(&arguments) {
@@ -48,8 +51,9 @@ fn main() -> ExitCode {
             if error == UsageError::TooManyArguments {
                 app::malformed_command_line(&arguments);
             }
-            console::print_error(&error.to_string());
-            console::print(cli::USAGE);
+            let texts = app::texts();
+            console::print_error(&error.message(&texts));
+            app::usage(&texts);
             Exit::Usage
         }
     };
@@ -59,7 +63,7 @@ fn main() -> ExitCode {
 fn run(command: &Command) -> Exit {
     match command {
         Command::Help => {
-            console::print(cli::USAGE);
+            app::usage(&app::texts());
             Exit::Success
         }
         Command::Version => {
