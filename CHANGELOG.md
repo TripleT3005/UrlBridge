@@ -6,6 +6,18 @@ Alle wichtigen Änderungen an UrlBridge, gegliedert nach Version im Stil von [Ke
 
 ## [Unreleased]
 
+## [0.2.1] – 2026-11-16
+
+### English
+
+#### Security
+- Reading the permissions of a file now checks the data returned by Windows directly at every access. This addresses three findings of the code analysis; no way to exploit them is known, and the behavior is unchanged.
+
+### Deutsch
+
+#### Sicherheit
+- Beim Lesen der Rechte einer Datei werden die von Windows gelieferten Daten jetzt direkt bei jedem Zugriff geprüft. Das behebt drei Meldungen der Codeanalyse; ein Weg, sie auszunutzen, ist nicht bekannt, und das Verhalten ist unverändert.
+
 ## [0.2.0] – 2026-11-15
 
 ### English
