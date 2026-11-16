@@ -1,5 +1,5 @@
 use std::path::Path;
-use std::ptr;
+use std::ptr::{self, NonNull};
 
 use windows_sys::Win32::Foundation::{ERROR_SUCCESS, LocalFree};
 use windows_sys::Win32::Security::Authorization::{
@@ -200,11 +200,7 @@ fn read_descriptor(path: &str) -> Result<Descriptor, u32> {
     }
     let read = (|| {
         let owner = sid_text(owner)?;
-        let entries = if dacl.is_null() {
-            None
-        } else {
-            Some(read_entries(dacl)?)
-        };
+        let entries = NonNull::new(dacl).map(read_entries).transpose()?;
         Ok(Descriptor { owner, entries })
     })();
     unsafe {
@@ -213,22 +209,25 @@ fn read_descriptor(path: &str) -> Result<Descriptor, u32> {
     read
 }
 
-fn read_entries(dacl: *const ACL) -> Result<Vec<Entry>, u32> {
+fn read_entries(dacl: NonNull<ACL>) -> Result<Vec<Entry>, u32> {
     const INVALID_ACL: u32 = 1336;
-    let count = unsafe { (*dacl).AceCount };
+    let count = unsafe { dacl.read_unaligned() }.AceCount;
     let mut entries = Vec::with_capacity(usize::from(count));
     for index in 0..u32::from(count) {
         let mut ace = ptr::null_mut();
-        if unsafe { GetAce(dacl, index, &raw mut ace) } == 0 || ace.is_null() {
+        if unsafe { GetAce(dacl.as_ptr(), index, &raw mut ace) } == 0 {
             return Err(INVALID_ACL);
         }
-        let header = unsafe { ptr::read_unaligned(ace.cast::<ACE_HEADER>()) };
+        let Some(ace) = NonNull::new(ace) else {
+            return Err(INVALID_ACL);
+        };
+        let header = unsafe { ace.cast::<ACE_HEADER>().read_unaligned() };
         let (mask, sid) = if header.AceType == ACCESS_ALLOWED_ACE_TYPE {
             if usize::from(header.AceSize) < size_of::<ACCESS_ALLOWED_ACE>() {
                 return Err(INVALID_ACL);
             }
-            let allowed = ace.cast::<ACCESS_ALLOWED_ACE>();
-            let mask = unsafe { ptr::read_unaligned(&raw const (*allowed).Mask) };
+            let allowed = ace.cast::<ACCESS_ALLOWED_ACE>().as_ptr();
+            let mask = unsafe { (&raw const (*allowed).Mask).read_unaligned() };
             let sid = unsafe { &raw mut (*allowed).SidStart }.cast();
             (mask, sid_text(sid)?)
         } else {
