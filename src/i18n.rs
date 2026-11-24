@@ -463,8 +463,8 @@ mod tests {
 
     #[test]
     fn warns_about_a_configured_language_without_a_file() {
-        let translations = Translations::load_from(&bundled(), Some("fr"), &codes(&["de-DE"]));
-        assert!(translations.warnings()[0].contains("\"fr\""));
+        let translations = Translations::load_from(&bundled(), Some("xx"), &codes(&["de-DE"]));
+        assert!(translations.warnings()[0].contains("\"xx\""));
         assert!(translations.warnings()[0].contains("\"de\""));
         let regional = Translations::load_from(&bundled(), Some("de-AT"), &[]);
         assert!(

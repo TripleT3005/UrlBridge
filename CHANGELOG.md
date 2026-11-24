@@ -6,6 +6,24 @@ Alle wichtigen Änderungen an UrlBridge, gegliedert nach Version im Stil von [Ke
 
 ## [Unreleased]
 
+## [1.0.0] – 2026-11-24
+
+### English
+
+#### Added
+- 36 more languages, so UrlBridge now speaks 38 languages, including Arabic and Hebrew with right-to-left dialogs. [LANGUAGES.md](LANGUAGES.md) lists them all; the new translations are AI-generated and not yet checked by native speakers.
+
+#### Changed
+- First stable version: the configuration format, the command line and the exit codes are now considered stable.
+
+### Deutsch
+
+#### Neu
+- 36 weitere Sprachen, UrlBridge gibt es damit in 38 Sprachen, darunter Arabisch und Hebräisch mit Dialogen von rechts nach links. [LANGUAGES.md](LANGUAGES.md) listet alle auf; die neuen Übersetzungen sind von einer KI erzeugt und noch nicht von Muttersprachlern geprüft.
+
+#### Geändert
+- Erste stabile Version: Konfigurationsformat, Kommandozeile und Exit-Codes gelten jetzt als stabil.
+
 ## [0.2.1] – 2026-11-16
 
 ### English
