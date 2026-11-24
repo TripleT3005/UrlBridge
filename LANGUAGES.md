@@ -22,5 +22,41 @@ Diese Liste wird aus den Köpfen der Dateien in [`lang`](lang) erzeugt. Nach Än
 
 | Code | Language | Name | Reviewed by |
 |---|---|---|---|
+| `ar` | Arabic | العربية | – |
+| `bg` | Bulgarian | Български | – |
+| `cs` | Czech | Čeština | – |
+| `da` | Danish | Dansk | – |
 | `de` | German | Deutsch | [@TripleT3005](https://github.com/TripleT3005) |
+| `de-CH` | German (Switzerland) | Deutsch (Schweiz) | – |
+| `el` | Greek | Ελληνικά | – |
 | `en` | English | English | [@TripleT3005](https://github.com/TripleT3005) |
+| `es` | Spanish | Español | – |
+| `et` | Estonian | Eesti | – |
+| `fi` | Finnish | Suomi | – |
+| `fr` | French | Français | – |
+| `he` | Hebrew | עברית | – |
+| `hr` | Croatian | Hrvatski | – |
+| `hu` | Hungarian | Magyar | – |
+| `id` | Indonesian | Bahasa Indonesia | – |
+| `it` | Italian | Italiano | – |
+| `ja` | Japanese | 日本語 | – |
+| `ko` | Korean | 한국어 | – |
+| `lt` | Lithuanian | Lietuvių | – |
+| `lv` | Latvian | Latviešu | – |
+| `nb` | Norwegian Bokmål | Norsk bokmål | – |
+| `nl` | Dutch | Nederlands | – |
+| `pl` | Polish | Polski | – |
+| `pt-BR` | Portuguese (Brazil) | Português (Brasil) | – |
+| `pt-PT` | Portuguese (Portugal) | Português (Portugal) | – |
+| `ro` | Romanian | Română | – |
+| `ru` | Russian | Русский | – |
+| `sk` | Slovak | Slovenčina | – |
+| `sl` | Slovenian | Slovenščina | – |
+| `sr-Latn` | Serbian (Latin) | Srpski (latinica) | – |
+| `sv` | Swedish | Svenska | – |
+| `th` | Thai | ไทย | – |
+| `tr` | Turkish | Türkçe | – |
+| `uk` | Ukrainian | Українська | – |
+| `vi` | Vietnamese | Tiếng Việt | – |
+| `zh-Hans` | Chinese (Simplified) | 简体中文 | – |
+| `zh-Hant` | Chinese (Traditional) | 繁體中文 | – |

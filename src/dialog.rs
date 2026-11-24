@@ -14,6 +14,7 @@ use crate::wide::to_wide;
 // Constants
 const TITLE: &str = "UrlBridge";
 const START_BUTTON: i32 = 100;
+const LEFT_TO_RIGHT_MARK: char = '\u{200E}';
 
 // Dialogs
 pub fn confirm(plan: &Plan, texts: &Translations) -> bool {
@@ -23,12 +24,12 @@ pub fn confirm(plan: &Plan, texts: &Translations) -> bool {
         "{}\n\n{}\n{}\n\n{}\n{}",
         texts.text(i18n::CONFIRM_TEXT),
         texts.text(i18n::CONFIRM_PROGRAM),
-        plan.protocol.program.path,
+        left_to_right(&plan.protocol.program.path),
         texts.text(i18n::CONFIRM_ARGUMENTS),
         if arguments.is_empty() {
             texts.text(i18n::CONFIRM_NO_ARGUMENTS)
         } else {
-            arguments
+            left_to_right(&arguments)
         }
     );
     let buttons = [
@@ -88,4 +89,22 @@ fn show(
         )
     };
     (result >= 0).then_some(pressed)
+}
+
+// Text
+fn left_to_right(text: &str) -> String {
+    format!("{LEFT_TO_RIGHT_MARK}{text}{LEFT_TO_RIGHT_MARK}")
+}
+
+// Tests
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn keeps_commands_left_to_right() {
+        let marked = left_to_right("/v:pc0042 /prompt");
+        assert_eq!(marked, "\u{200E}/v:pc0042 /prompt\u{200E}");
+        assert_eq!(marked.trim_matches(LEFT_TO_RIGHT_MARK), "/v:pc0042 /prompt");
+    }
 }

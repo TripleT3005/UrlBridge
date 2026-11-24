@@ -21,7 +21,7 @@ Which protocols exist, which program each one starts and which values are allowe
 - Refuses to run if the configuration, UrlBridge itself or a local target program can be modified by standard users
 - Every start, cancellation and rejected link is written to the Windows event log
 - Installation by PowerShell script, suitable for software distribution
-- English and German, following the Windows display language; further languages are plain text files
+- 38 languages, following the Windows display language; further languages are plain text files
 - No network access, no telemetry (see [Privacy](#privacy))
 
 ### Installation
@@ -92,7 +92,7 @@ Edge and Chrome ask before opening an external protocol ("This site is trying to
 The policy applies per protocol and per origin; protocols that are not listed keep the browser prompt. The install script deliberately does not set browser policies. UrlBridge still asks for confirmation before every start.
 
 #### Languages
-UrlBridge comes in English and German; [LANGUAGES.md](LANGUAGES.md) lists the codes. It follows the Windows display language of the user and falls back to English. To use one language for everyone, set `"language": "de"` in the configuration.
+UrlBridge comes in 38 languages, among them English, German, French, Spanish, Chinese, Japanese, Arabic and Hebrew (right to left); [LANGUAGES.md](LANGUAGES.md) lists all of them with their codes. It follows the Windows display language of the user and falls back to English. To use one language for everyone, set `"language": "de"` in the configuration.
 
 The dialogs, messages and console output are translated. Details reported by `--validate` and the entries in the event log are always English, so that they read the same on every computer.
 
@@ -237,7 +237,7 @@ Welche Protokolle es gibt, welches Programm sie starten und welche Werte erlaubt
 - Startet nichts, wenn Standardbenutzer die Konfiguration, UrlBridge selbst oder ein lokales Zielprogramm verändern können
 - Jeder Start, jeder Abbruch und jeder abgelehnte Link steht im Windows-Ereignisprotokoll
 - Installation per PowerShell-Skript, geeignet für die Softwareverteilung
-- Englisch und Deutsch, je nach Anzeigesprache von Windows; weitere Sprachen sind einfache Textdateien
+- 38 Sprachen, je nach Anzeigesprache von Windows; weitere Sprachen sind einfache Textdateien
 - Kein Netzwerkzugriff, keine Telemetrie (siehe [Datenschutz](#datenschutz))
 
 ### Installation
@@ -308,7 +308,7 @@ Edge und Chrome fragen nach, bevor sie ein externes Protokoll öffnen („This s
 Die Richtlinie gilt je Protokoll und je Herkunft; für nicht aufgeführte Protokolle fragt der Browser weiter nach. Das Installationsskript setzt bewusst keine Browser-Richtlinien. UrlBridge fragt weiterhin vor jedem Start nach.
 
 #### Sprachen
-UrlBridge gibt es auf Englisch und Deutsch; [LANGUAGES.md](LANGUAGES.md) listet die Codes auf. Es folgt der Anzeigesprache von Windows des jeweiligen Benutzers und fällt auf Englisch zurück. Soll für alle dieselbe Sprache gelten, in der Konfiguration `"language": "de"` setzen.
+UrlBridge gibt es in 38 Sprachen, darunter Englisch, Deutsch, Französisch, Spanisch, Chinesisch, Japanisch, Arabisch und Hebräisch (von rechts nach links); [LANGUAGES.md](LANGUAGES.md) listet alle mit ihren Codes auf. Es folgt der Anzeigesprache von Windows des jeweiligen Benutzers und fällt auf Englisch zurück. Soll für alle dieselbe Sprache gelten, in der Konfiguration `"language": "de"` setzen.
 
 Übersetzt sind die Dialoge, die Meldungen und die Konsolenausgabe. Die Einzelheiten, die `--validate` meldet, und die Einträge im Ereignisprotokoll sind immer englisch, damit sie auf jedem Rechner gleich lauten.
 
